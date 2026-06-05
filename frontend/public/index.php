@@ -34,39 +34,31 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-// Login handler
+// Login handler - NOW FULLY INTEGRATED WITH BACKEND API
 if (isset($_GET['action']) && $_GET['action'] === 'login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // In this MVC structure, login is a special case.
-        // We'll call the API to verify.
-        $api = new \Models\UsuarioApiModel(); // This is a bit cheat, should be a dedicated AuthModel
         try {
-            // Use the API to authenticate (We need an endpoint for this in backend)
-            // For now, I'll just simulate it or assume the backend has /api/auth
-            $response = $api->get('/usuarios'); // Mock check for now
-            // In real impl, we'd have a /api/login endpoint.
-            // To keep it simple and matching BiblioSys's a-priori flow:
-            if ($_POST['username'] === 'admin' && $_POST['password'] === 'admin123') {
-                $_SESSION['user_nombre'] = 'Administrator';
-                $_SESSION['user_username'] = 'admin';
-                $_SESSION['user_rol'] = 'ADMIN';
-                header('Location: index.php');
-                exit;
-            } elseif ($_POST['username'] === 'biblio' && $_POST['password'] === 'biblio123') {
-                $_SESSION['user_nombre'] = 'Librarian';
-                $_SESSION['user_username'] = 'biblio';
-                $_SESSION['user_rol'] = 'BIBLIOTECARIO';
-                header('Location: index.php');
-                exit;
-            } else {
-                $_SESSION['error'] = "Usuario o contraseña incorrectos";
-            }
-        } catch (\Exception $e) {
-            $_SESSION['error'] = "Error de conexión con el servidor";
+            $api = new \Models\UsuarioApiModel();
+            // We use a generic request method because the Model doesn't have a 'login' method
+            // In a more complex system, we'd add this to the Model.
+            $client = new \Core\ApiClient();
+            $result = $client->post('/auth/login', [
+                'username' => $_POST['username'] ?? '',
+                'password' => $_POST['password'] ?? ''
+            ]);
+
+            // If we reach here, the API returned success: true
+            $_SESSION['user_nombre'] = $result['nombre'];
+            $_SESSION['user_username'] = $result['username'];
+            $_SESSION['user_rol'] = $result['rol']; // 'ADMIN' or 'BIBLIOTECARIO'
+
+            header('Location: index.php');
+            exit;
+        } catch (\RuntimeException $e) {
+            $_SESSION['error'] = $e->getMessage();
         }
     }
 
-    // Render Login View (manually since it's outside layout)
     include BASE_PATH . '/views/login.php';
     exit;
 }

@@ -86,4 +86,9 @@ class LibroRepository {
         $stmt->execute([$id]);
         return (int)$stmt->fetchColumn();
     }
+
+    public function updateStatus(int $id, string $status): void {
+        $stmt = $this->db->prepare("UPDATE libros SET estado = ? WHERE id_libro = ?");
+        $stmt->execute([$status, $id]);
+    }
 }

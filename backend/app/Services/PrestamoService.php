@@ -50,11 +50,10 @@ class PrestamoService {
 
         $this->prestamoRepo->updateBookInventory($libro['id_libro'], -1);
 
-        // Update book state if now 0
+        // Sync status: if no more books, mark as PRESTADO
         $updatedLibro = $this->libroRepo->findById($libro['id_libro']);
         if ((int)$updatedLibro['cantidad_disponible'] === 0) {
-            // We'd need a method in LibroRepository to update state
-            // For now, I'll let the DB handles it or add the method
+            $this->libroRepo->updateStatus($libro['id_libro'], 'PRESTADO');
         }
 
         return $id;
@@ -70,6 +69,12 @@ class PrestamoService {
         $libroId = $this->prestamoRepo->getLibroId($id);
         if ($libroId) {
             $this->prestamoRepo->updateBookInventory($libroId, 1);
+
+            // Sync status: if it becomes available, mark as DISPONIBLE
+            $updatedLibro = $this->libroRepo->findById($libroId);
+            if ((int)$updatedLibro['cantidad_disponible'] > 0) {
+                $this->libroRepo->updateStatus($libroId, 'DISPONIBLE');
+            }
         }
     }
 }

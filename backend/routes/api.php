@@ -7,6 +7,7 @@ use App\Controllers\AutorController;
 use App\Controllers\EstudianteController;
 use App\Controllers\LibroController;
 use App\Controllers\PrestamoController;
+use App\Controllers\AuthController;
 use App\Middlewares\AuthMiddleware;
 use App\Middlewares\JsonMiddleware;
 
@@ -15,6 +16,9 @@ use App\Middlewares\JsonMiddleware;
 // All routes use JsonMiddleware
 $commonMiddlewares = [JsonMiddleware::class];
 $protectedMiddlewares = [...$commonMiddlewares, AuthMiddleware::class];
+
+// PUBLIC ROUTES
+$router->add('POST', '/api/auth/login', [AuthController::class, 'login'], $commonMiddlewares);
 
 // Usuarios
 $router->add('GET', '/api/usuarios', [UsuarioController::class, 'index'], $protectedMiddlewares);

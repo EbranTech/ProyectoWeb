@@ -8,11 +8,9 @@ $old = static function (string $key, mixed $default = '') use ($formData, $autor
     if (array_key_exists($key, $formData)) {
         return (string) $formData[$key];
     }
-
     if (is_array($autor) && array_key_exists($key, $autor)) {
         return (string) $autor[$key];
     }
-
     return (string) $default;
 };
 ?>
