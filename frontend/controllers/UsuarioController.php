@@ -14,17 +14,29 @@ class UsuarioController {
         $this->model = new UsuarioApiModel();
     }
 
+    private function ensureAdmin(): void {
+        if (($_SESSION['user_rol'] ?? '') !== 'ADMIN') {
+            $_SESSION['error'] = 'No autorizado para gestionar usuarios.';
+            header('Location: index.php?action=prestamos');
+            exit;
+        }
+    }
+
     public function index(): void {
+        $this->ensureAdmin();
+
         try {
             $usuarios = $this->model->getAll();
             ResponseView::layout('usuarios/listar', ['usuarios' => $usuarios], 'Usuarios');
         } catch (RuntimeException $e) {
             $_SESSION['error'] = $e->getMessage();
-            ResponseView::layout('usuarios/listar', [], 'Usuarios');
+            ResponseView::layout('usuarios/listar', ['usuarios' => []], 'Usuarios');
         }
     }
 
     public function create(): void {
+        $this->ensureAdmin();
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $this->model->create($_POST);
@@ -38,6 +50,8 @@ class UsuarioController {
     }
 
     public function edit(int $id): void {
+        $this->ensureAdmin();
+
         try {
             $usuario = $this->model->getById($id);
             ResponseView::layout('usuarios/edit', ['usuario' => $usuario], 'Editar Usuario');
@@ -49,6 +63,8 @@ class UsuarioController {
     }
 
     public function update(int $id): void {
+        $this->ensureAdmin();
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $this->model->update($id, $_POST);
@@ -62,6 +78,8 @@ class UsuarioController {
     }
 
     public function delete(int $id): void {
+        $this->ensureAdmin();
+
         try {
             $this->model->delete($id);
             header('Location: index.php?action=usuarios');

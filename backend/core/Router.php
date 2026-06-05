@@ -34,8 +34,19 @@ class Router {
                 $params = array_filter($matches, 'Ctype_alpha', ARRAY_FILTER_USE_KEY);
 
                 // Execute Middlewares
-                foreach ($route['middlewares'] as $middlewareClass) {
-                    $middleware = new $middlewareClass();
+                foreach ($route['middlewares'] as $middlewareRef) {
+                    if (is_string($middlewareRef)) {
+                        $middleware = new $middlewareRef();
+                    } elseif (is_object($middlewareRef)) {
+                        $middleware = $middlewareRef;
+                    } else {
+                        throw new \RuntimeException('Invalid middleware definition');
+                    }
+
+                    if (!method_exists($middleware, 'handle')) {
+                        throw new \RuntimeException('Middleware must define a handle method');
+                    }
+
                     $middleware->handle($request);
                 }
 

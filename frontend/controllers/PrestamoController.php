@@ -51,15 +51,51 @@ class PrestamoController {
     public function devoluciones(): void {
         try {
             $prestamos = $this->prestamoModel->getAll();
-            ResponseView::layout('devoluciones/listar', ['prestamos' => $prestamos], 'Devoluciones');
+            $busqueda = trim((string) ($_GET['busqueda'] ?? ''));
+
+            if ($busqueda !== '') {
+                $needle = function_exists('mb_strtolower')
+                    ? mb_strtolower($busqueda, 'UTF-8')
+                    : strtolower($busqueda);
+
+                $prestamos = array_values(array_filter(
+                    $prestamos,
+                    static function (array $row) use ($needle): bool {
+                        if (($row['estado'] ?? '') !== 'ACTIVO') {
+                            return false;
+                        }
+
+                        $haystack = implode(' ', [
+                            (string) ($row['carnet'] ?? ''),
+                            (string) ($row['estudiante'] ?? ''),
+                            (string) ($row['libro'] ?? ''),
+                        ]);
+
+                        $haystack = function_exists('mb_strtolower')
+                            ? mb_strtolower($haystack, 'UTF-8')
+                            : strtolower($haystack);
+
+                        return str_contains($haystack, $needle);
+                    }
+                ));
+            }
+
+            ResponseView::layout('devoluciones/listar', [
+                'prestamos' => $prestamos,
+                'busqueda' => $busqueda,
+            ], 'Devoluciones');
         } catch (RuntimeException $e) {
             $_SESSION['error'] = $e->getMessage();
-            ResponseView::layout('devoluciones/listar', ['prestamos' => []], 'Devoluciones');
+            ResponseView::layout('devoluciones/listar', [
+                'prestamos' => [],
+                'busqueda' => trim((string) ($_GET['busqueda'] ?? '')),
+            ], 'Devoluciones');
         }
     }
 
     public function returnLoan(): void {
         $redirectAction = $_POST['redirect_action'] ?? 'devoluciones';
+        $redirectQuery = trim((string) ($_POST['redirect_query'] ?? ''));
         if (!in_array($redirectAction, ['prestamos', 'devoluciones'], true)) {
             $redirectAction = 'devoluciones';
         }
@@ -70,7 +106,11 @@ class PrestamoController {
                     'id_prestamo' => $_POST['id_prestamo'],
                     'fecha_devolucion' => $_POST['fecha_devolucion']
                 ]);
-                header('Location: index.php?action=' . $redirectAction);
+                $location = 'index.php?action=' . $redirectAction;
+                if ($redirectAction === 'devoluciones' && $redirectQuery !== '') {
+                    $location .= '&busqueda=' . rawurlencode($redirectQuery);
+                }
+                header('Location: ' . $location);
                 exit;
             } catch (RuntimeException $e) {
                 $_SESSION['error'] = $e->getMessage();

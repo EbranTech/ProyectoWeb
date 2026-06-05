@@ -47,6 +47,19 @@ class Request {
                 $headers[strtolower($name)] = $value;
             }
         }
+
+        if (function_exists('apache_request_headers')) {
+            foreach (apache_request_headers() as $name => $value) {
+                $headers[strtolower($name)] = $value;
+            }
+        }
+
+        foreach (['REDIRECT_HTTP_AUTHORIZATION', 'Authorization'] as $serverKey) {
+            if (isset($_SERVER[$serverKey]) && !isset($headers['authorization'])) {
+                $headers['authorization'] = $_SERVER[$serverKey];
+            }
+        }
+
         // Manually add Content-Type since it's not HTTP_
         if (isset($_SERVER['CONTENT_TYPE'])) {
             $headers['content-type'] = $_SERVER['CONTENT_TYPE'];

@@ -14,7 +14,7 @@ spl_autoload_register(function ($class) {
     if (str_starts_with($class, 'Core\\')) {
         require_once BASE_PATH . '/core/' . substr($class, 5) . '.php';
     } elseif (str_starts_with($class, 'Controllers\\')) {
-        require_once BASE_PATH . '/controllers/' . substr($class, 13) . '.php';
+        require_once BASE_PATH . '/controllers/' . substr($class, 12) . '.php';
     } elseif (str_starts_with($class, 'Models\\')) {
         require_once BASE_PATH . '/models/' . substr($class, 7) . '.php';
     }
