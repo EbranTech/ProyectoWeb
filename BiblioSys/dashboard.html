@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiblioSys - Panel</title>
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="app-page">
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <span class="brand-mark">B</span>
+        <div>
+            <h1>BiblioSys</h1>
+            <p>Biblioteca universitaria</p>
+        </div>
+    </div>
+
+    <nav id="mainMenu" class="main-menu" aria-label="Menu principal"></nav>
+</aside>
+
+<main class="workspace">
+    <header class="topbar">
+        <div>
+            <h2 id="viewTitle">Prestamos</h2>
+            <p id="viewSubtitle">Flujo conectado con estudiantes y libros registrados.</p>
+        </div>
+        <div class="user-box">
+            <strong id="nombreUsuario">Usuario</strong>
+            <span id="rolUsuario">Rol</span>
+            <button type="button" id="logoutBtn" class="btn subtle">Salir</button>
+        </div>
+    </header>
+
+    <section id="appContent" class="content" aria-live="polite"></section>
+</main>
+
+<script src="assets/js/database.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>

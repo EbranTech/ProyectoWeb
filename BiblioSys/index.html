@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiblioSys - Ingreso</title>
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="login-page">
+
+<main class="login-box">
+    <div class="brand">
+        <span class="brand-mark">B</span>
+        <div>
+            <h1>BiblioSys</h1>
+            <p>Sistema de gestion bibliotecaria</p>
+        </div>
+    </div>
+
+    <form id="loginForm" class="login-form">
+        <label>
+            Usuario
+            <input type="text" id="usuario" autocomplete="username" required>
+        </label>
+
+        <label>
+            Contrasena
+            <input type="password" id="password" autocomplete="current-password" required>
+        </label>
+
+        <button type="submit" class="btn primary">Ingresar</button>
+        <p id="mensaje" class="form-message" aria-live="polite"></p>
+    </form>
+</main>
+
+<script src="assets/js/database.js"></script>
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(event){
+    event.preventDefault();
+
+    const usuario = document.getElementById("usuario").value.trim().toLowerCase();
+    const password = document.getElementById("password").value;
+    const mensaje = document.getElementById("mensaje");
+    const usuarioValido = BiblioDB.authenticate(usuario, password);
+
+    if(!usuarioValido){
+        mensaje.textContent = "Usuario o contrasena incorrectos.";
+        mensaje.className = "form-message error";
+        return;
+    }
+
+    sessionStorage.setItem("usuarioActual", usuarioValido.username);
+    sessionStorage.setItem("nombreUsuario", usuarioValido.nombre);
+    sessionStorage.setItem("rolActual", usuarioValido.rol);
+
+    mensaje.textContent = "Ingreso correcto.";
+    mensaje.className = "form-message success";
+
+    window.setTimeout(function(){
+        window.location.href = "dashboard.html";
+    }, 400);
+});
+</script>
+
+</body>
+</html>
