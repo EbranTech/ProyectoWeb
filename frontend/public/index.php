@@ -70,6 +70,7 @@ if (!isset($_SESSION['user_username'])) {
 }
 
 // Routes
+$router->add('index', function() { (new \Controllers\PrestamoController())->index(); });
 $router->add('usuarios', function() { (new \Controllers\UsuarioController())->index(); });
 $router->add('usuarios_new', function() { (new \Controllers\UsuarioController())->create(); });
 $router->add('usuarios_edit', function() {

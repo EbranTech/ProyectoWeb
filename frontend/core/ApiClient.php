@@ -14,13 +14,22 @@ class ApiClient {
     }
 
     public function request(string $method, string $endpoint, mixed $data = null, array $headers = []): array {
+        // FIXED: Support for query strings in GET requests
         $url = $this->baseUrl . $endpoint;
+        if ($method === 'GET' && is_array($data)) {
+            $url .= '?' . http_build_query($data);
+        }
+
         $ch = curl_init($url);
+
+        // FIXED: Pass current session username in headers for RBAC/Self-deletion protection
+        $userUsername = $_SESSION['user_username'] ?? '';
 
         $defaultHeaders = [
             "Authorization: Bearer {$this->token}",
             "Content-Type: application/json",
-            "Accept: application/json"
+            "Accept: application/json",
+            "X-User-Username: $userUsername"
         ];
 
         $allHeaders = array_merge($defaultHeaders, $headers);
@@ -29,7 +38,7 @@ class ApiClient {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $allHeaders);
 
-        if ($data !== null) {
+        if ($method !== 'GET' && $data !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         }
 
@@ -53,7 +62,7 @@ class ApiClient {
         return $decoded['data'] ?? [];
     }
 
-    public function get(string $endpoint) { return $this->request('GET', $endpoint); }
+    public function get(string $endpoint, array $params = []) { return $this->request('GET', $endpoint, $params); }
     public function post(string $endpoint, array $data) { return $this->request('POST', $endpoint, $data); }
     public function put(string $endpoint, array $data) { return $this->request('PUT', $endpoint, $data); }
     public function delete(string $endpoint) { return $this->request('DELETE', $endpoint); }

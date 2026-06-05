@@ -11,7 +11,7 @@ class Router {
         $this->basePath = rtrim($basePath, '/');
     }
 
-    public function add(string $method, string $route, callable $handler, array $middlewares = []): void {
+    public function add(string $method, string $route, callable|array $handler, array $middlewares = []): void {
         $this->routes[] = [
             'method' => strtoupper($method),
             'route' => $this->compileRoute($route),
@@ -21,7 +21,8 @@ class Router {
     }
 
     private function compileRoute(string $route): string {
-        return '#^' . preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route) . '$';
+        // FIXED: Added closing delimiter '#' to the regex
+        return '#^' . preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route) . '$#';
     }
 
     public function dispatch(Request $request): void {
@@ -38,8 +39,16 @@ class Router {
                     $middleware->handle($request);
                 }
 
-                // Execute Handler
-                call_user_func_array($route['handler'], [$request, ...array_values($params)]);
+                // FIXED: Handle Controller Class/Method arrays by instantiating the controller
+                $handler = $route['handler'];
+                if (is_array($handler)) {
+                    $controllerClass = $handler[0];
+                    $method = $handler[1];
+                    $controller = new $controllerClass();
+                    call_user_func_array([$controller, $method], [$request, ...array_values($params)]);
+                } else {
+                    call_user_func_array($handler, [$request, ...array_values($params)]);
+                }
                 return;
             }
         }

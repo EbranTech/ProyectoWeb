@@ -32,6 +32,14 @@ class LibroService {
             throw new RuntimeException("Ya existe un libro con ese ISBN", 400);
         }
 
+        // Also validate internal code uniqueness
+        $all = $this->repository->getAll();
+        foreach($all as $l) {
+            if ($l['codigo_libro'] === $data['codigo']) {
+                throw new RuntimeException("Ya existe un libro con ese codigo interno", 400);
+            }
+        }
+
         $estado = $data['estado'] ?? 'DISPONIBLE';
         $disponibles = ($estado === 'MANTENIMIENTO') ? 0 : $data['total'];
 
@@ -51,11 +59,24 @@ class LibroService {
     }
 
     public function update(int $id, array $data): void {
-        $this->getById($id);
+        $libro = $this->getById($id);
         $activeLoans = $this->repository->countActiveLoans($id);
 
         if ((int)$data['total'] < $activeLoans) {
             throw new RuntimeException("La cantidad total no puede ser menor a los prestamos activos", 400);
+        }
+
+        // FIXED: Validate ISBN uniqueness excluding current book
+        if ($this->repository->findByIsbn($data['isbn']) && $this->repository->findByIsbn($data['isbn'])['id_libro'] != $id) {
+            throw new RuntimeException("Ya existe otro libro con ese ISBN", 400);
+        }
+
+        // FIXED: Validate Internal Code uniqueness excluding current book
+        $all = $this->repository->getAll();
+        foreach($all as $l) {
+            if ($l['codigo_libro'] === $data['codigo'] && $l['id_libro'] != $id) {
+                throw new RuntimeException("Ya existe otro libro con ese codigo interno", 400);
+            }
         }
 
         $estado = $data['estado'] ?? 'DISPONIBLE';
